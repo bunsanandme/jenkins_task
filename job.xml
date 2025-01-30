@@ -1,0 +1,64 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Jenkins Job,ITMO</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@latest">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:bunsanandme/jenkins_task.git</url>
+        <credentialsId>123e4567-e89b-12d3-a456-426613556000</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+  </scm>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+        echo "----------Prom Env Build Start----------"
+        echo "This is the new line in my index.html - file" >> index.html
+        echo "----------Prom Env Build End----------"
+      </command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>
+        echo "----------Prom Env Test Start----------"
+        tempResult=`grep "This page is from GitHub repo" index.html | grep "Arial" | wc -l`
+        echo $tempResult
+        if [ "$tempResult" = "1" ]; then
+            echo "Test Successfully Passed"
+        else
+            echo "Test Failed"
+            exit 1
+        fi
+        echo "----------Prom Env Test End----------"
+      </command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.publish__over__ssh.BapSshPublisherPlugin plugin="publish-over-ssh@latest">
+      <consolePrefix>SSH:</consolePrefix>
+      <delegate>
+        <publishers>
+          <hudson.plugins.publish__over__ssh.BapSshPublisher>
+            <configName>server-conf</configName>
+            <transfers>
+              <hudson.plugins.publish__over__ssh.BapSshTransfer>
+                <sourceFiles>index.html</sourceFiles>
+                <remoteDirectory>/var/www/html/</remoteDirectory>
+                <execCommand>sudo service nginx restart</execCommand>
+              </hudson.plugins.publish__over__ssh.BapSshTransfer>
+            </transfers>
+          </hudson.plugins.publish__over__ssh.BapSshPublisher>
+        </publishers>
+      </delegate>
+    </hudson.plugins.publish__over__ssh.BapSshPublisherPlugin>
+  </publishers>
+  <buildWrappers/>
+</project>
